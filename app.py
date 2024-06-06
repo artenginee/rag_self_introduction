@@ -86,7 +86,7 @@ def load_data():
     return data, vectorizer, index
 
 @sl.cache_resource
-def inference():
+def llm_model():
     from langchain_community.llms import HuggingFaceEndpoint
 
     repo_id = "mistralai/Mistral-7B-Instruct-v0.2"
@@ -104,27 +104,8 @@ def inference():
     )
     return llm
 
-# Retrieve
-def retrieve(query, k=1):
-    query_vector = sl.session_state.vectorizer.encode([q], convert_to_tensor=True).cpu().numpy()
-    distances, indices = sl.session_state.index.search(query_vector, k)
-    return [sl.session_state.data[i] for i in indices[0]]
-
-if 'vectorizer' not in sl.session_state or 'data' not in sl.session_state or 'index' not in sl.session_state or 'llm' not in sl.session_state:
-    print('init')
-    sl.session_state.data, sl.session_state.vectorizer, sl.session_state.index = load_data()
-    sl.session_state.llm = inference()
-
-
-sl.header("Enter any questions you would like to know.")
-
-# Input box for the question
-q = sl.text_input("Your question")
-
-
-if q=='':
-    sl.write('')
-else:
+@sl.cache_data
+def inference(q):
     info=""
 
     if q:
@@ -143,4 +124,27 @@ else:
     llm_chain = LLMChain(prompt=prompt, llm=sl.session_state.llm)
     result = llm_chain.invoke({"question": q, "info": info}, temperature=0.1)
 
-    sl.write(result['text'])
+    return result['text']
+    
+# Retrieve
+def retrieve(query, k=1):
+    query_vector = sl.session_state.vectorizer.encode([q], convert_to_tensor=True).cpu().numpy()
+    distances, indices = sl.session_state.index.search(query_vector, k)
+    return [sl.session_state.data[i] for i in indices[0]]
+
+if 'vectorizer' not in sl.session_state:
+    print('init')
+    sl.session_state.data, sl.session_state.vectorizer, sl.session_state.index = load_data()
+    sl.session_state.llm = llm_model()
+
+
+sl.header("Enter any questions you would like to know.")
+
+# Input box for the question
+q = sl.text_input("Your question")
+
+
+if q=='':
+    sl.write('')
+else:
+    sl.write(inference(q))
