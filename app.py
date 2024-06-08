@@ -128,7 +128,7 @@ def inference(q):
     
 # Retrieve
 def retrieve(query, k=1):
-    query_vector = sl.session_state.vectorizer.encode([q], convert_to_tensor=True).cpu().numpy()
+    query_vector = sl.session_state.vectorizer.encode([query], convert_to_tensor=True).cpu().numpy()
     distances, indices = sl.session_state.index.search(query_vector, k)
     return [sl.session_state.data[i] for i in indices[0]]
 
@@ -138,13 +138,17 @@ if 'vectorizer' not in sl.session_state:
     sl.session_state.llm = llm_model()
 
 
-sl.header("Enter any questions you would like to know.")
+@sl.experimental_fragment
+def chat():
 
+    if q=='':
+        sl.write('')
+    else:
+        sl.write(inference(q))
+
+
+sl.header("Enter any questions you would like to know.")
 # Input box for the question
 q = sl.text_input("Your question")
 
-
-if q=='':
-    sl.write('')
-else:
-    sl.write(inference(q))
+chat()
