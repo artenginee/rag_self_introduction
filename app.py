@@ -140,7 +140,9 @@ if 'vectorizer' not in sl.session_state:
 
 @sl.experimental_fragment
 def chat():
-
+    # Input box for the question
+    q = sl.text_input("Your question")
+    
     if q=='':
         sl.write('')
     else:
@@ -148,7 +150,6 @@ def chat():
 
 
 sl.header("Enter any questions you would like to know.")
-# Input box for the question
-q = sl.text_input("Your question")
+
 
 chat()
