@@ -22,8 +22,6 @@ import faiss
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
-"""Hi, I am Gayeon Lee. I am a passionate Data Professional.
-Explore my projects and skills to learn more about my potentials."""
 
 @sl.cache_data
 def load_data(): 
@@ -132,24 +130,25 @@ def retrieve(query, k=1):
     distances, indices = sl.session_state.index.search(query_vector, k)
     return [sl.session_state.data[i] for i in indices[0]]
 
+@sl.experimental_fragment
+def chat():
+    # Input box for the question
+    q = sl.text_input("Your question")
+
+    if q=='':
+        sl.write('')
+    else:
+        sl.write(inference(q))
+
 if 'vectorizer' not in sl.session_state:
     print('init')
     sl.session_state.data, sl.session_state.vectorizer, sl.session_state.index = load_data()
     sl.session_state.llm = llm_model()
 
 
-@sl.experimental_fragment
-def chat():
-    # Input box for the question
-    q = sl.text_input("Your question")
-    
-    if q=='':
-        sl.write('')
-    else:
-        sl.write(inference(q))
-
+"""Hi, I am Gayeon Lee. I am a passionate Data Professional.
+Explore my projects and skills to learn more about my potentials."""
 
 sl.header("Enter any questions you would like to know.")
-
 
 chat()
